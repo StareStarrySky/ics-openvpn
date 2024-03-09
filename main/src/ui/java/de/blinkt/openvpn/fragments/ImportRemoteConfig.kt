@@ -23,6 +23,7 @@ import android.widget.*
 import androidx.core.view.isInvisible
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
+import de.blinkt.openvpn.ProfileFromRemote
 import de.blinkt.openvpn.R
 import de.blinkt.openvpn.activities.ConfigConverter
 import de.blinkt.openvpn.core.Preferences
@@ -349,6 +350,11 @@ class ImportRemoteConfig : DialogFragment() {
                         pleaseWait?.dismiss()
                         val startImport = Intent(activity, ConfigConverter::class.java)
                         startImport.action = ConfigConverter.IMPORT_PROFILE_DATA
+                        startImport.putExtra(Intent.EXTRA_SUBJECT,
+                                ProfileFromRemote(importChoiceAS.isChecked, asProfileUri.toString(),
+                                        user, password, asUseAutologin.isChecked
+                                )
+                        )
                         startImport.putExtra(Intent.EXTRA_TEXT, profile)
                         startActivity(startImport)
                         dismiss()

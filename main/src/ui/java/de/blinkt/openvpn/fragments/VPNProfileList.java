@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 import de.blinkt.openvpn.LaunchVPN;
+import de.blinkt.openvpn.ProfileSource;
 import de.blinkt.openvpn.R;
 import de.blinkt.openvpn.VpnProfile;
 import de.blinkt.openvpn.activities.ConfigConverter;
@@ -475,8 +476,10 @@ public class VPNProfileList extends ListFragment implements OnClickListener, Vpn
                                 // Remove restrictions on copy profile
                                 profile.mProfileCreator = null;
                                 profile.mUserEditable = true;
-                            } else
+                            } else {
                                 profile = new VpnProfile(name);
+                                profile.profileSource = new ProfileSource<Void>(ProfileSource.Type.CREATE, null);
+                            }
 
                             addProfile(profile);
                             editVPN(profile);

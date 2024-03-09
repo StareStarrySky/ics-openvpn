@@ -102,6 +102,12 @@ public class VpnProfile implements Serializable, Cloneable {
     // but needs to keep wrong name to guarante loading of old
     // profiles
     public transient boolean profileDeleted = false;
+
+    /**
+     * the profile come from
+     */
+    public ProfileSource profileSource;
+
     public int mAuthenticationType = TYPE_KEYSTORE;
     public String mName;
     public String mAlias;

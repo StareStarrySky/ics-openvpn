@@ -28,6 +28,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.lifecycle.lifecycleScope
+import de.blinkt.openvpn.ProfileFromRemote
+import de.blinkt.openvpn.ProfileSource
 import de.blinkt.openvpn.R
 import de.blinkt.openvpn.VpnProfile
 import de.blinkt.openvpn.core.ConfigParser
@@ -672,13 +674,15 @@ class ConfigConverter : BaseActivity(), FileSelectCallback, View.OnClickListener
 
     private fun doImportIntent(intent: Intent) {
         if (intent.action.equals(IMPORT_PROFILE_DATA)) {
+            val src = intent.getSerializableExtra(Intent.EXTRA_SUBJECT)
+            assert(src is ProfileFromRemote)
             val data = intent.getStringExtra(Intent.EXTRA_TEXT)
 
             if (data != null) {
                 lifecycleScope.launch {
                     startImportTask(
                         Uri.fromParts("inline", "inlinetext", null),
-                        "imported profiles from AS", data)
+                        "imported profiles from AS", src as ProfileFromRemote?, data)
                 }
             }
         } else if (intent.action.equals(IMPORT_PROFILE) || intent.action.equals(Intent.ACTION_VIEW)) {
@@ -735,11 +739,11 @@ class ConfigConverter : BaseActivity(), FileSelectCallback, View.OnClickListener
         }
 
         lifecycleScope.launch {
-            startImportTask(data, possibleName, "")
+            startImportTask(data, possibleName, null, "")
         }
     }
 
-    private suspend fun startImportTask(data: Uri, possibleName: String?, inlineData: String) {
+    private suspend fun startImportTask(data: Uri, possibleName: String?, fromRemote: ProfileFromRemote?, inlineData: String) {
         val mProgress: ProgressBar
         withContext(Dispatchers.Main)
         {
@@ -761,8 +765,15 @@ class ConfigConverter : BaseActivity(), FileSelectCallback, View.OnClickListener
                 if (inputStream != null) {
                     doImport(inputStream)
                 }
-                if (mResult == null)
+                if (mResult == null) {
                     errorCode = -3
+                } else {
+                    if (fromRemote != null) {
+                        mResult?.profileSource = ProfileSource(if (fromRemote.isAS) ProfileSource.Type.AS else ProfileSource.Type.URL, fromRemote)
+                    } else if (data.scheme.equals("file") || data.scheme.equals("content")) {
+                        mResult?.profileSource = ProfileSource(ProfileSource.Type.IMPORT, data.toString())
+                    }
+                }
             } catch (se: IOException) {
                 log(R.string.import_content_resolve_error.toString() + ":" + se.localizedMessage)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
