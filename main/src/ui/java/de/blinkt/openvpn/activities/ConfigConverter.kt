@@ -676,13 +676,22 @@ class ConfigConverter : BaseActivity(), FileSelectCallback, View.OnClickListener
         if (intent.action.equals(IMPORT_PROFILE_DATA)) {
             val src = intent.getSerializableExtra(Intent.EXTRA_SUBJECT)
             assert(src is ProfileFromRemote)
+            src as ProfileFromRemote
+
             val data = intent.getStringExtra(Intent.EXTRA_TEXT)
 
             if (data != null) {
                 lifecycleScope.launch {
+                    var possibleName = "imported profiles from AS"
+                    if (".ovpn" in src.url || ".conf" in src.url) {
+                        val mses = Regex("(?<=/)[^/]+(?=\\.(ovpn|conf))").findAll(src.url)
+                        if (mses.count() > 0) {
+                            possibleName = mses.first().value
+                        }
+                    }
                     startImportTask(
                         Uri.fromParts("inline", "inlinetext", null),
-                        "imported profiles from AS", src as ProfileFromRemote?, data)
+                            possibleName, src, data)
                 }
             }
         } else if (intent.action.equals(IMPORT_PROFILE) || intent.action.equals(Intent.ACTION_VIEW)) {
