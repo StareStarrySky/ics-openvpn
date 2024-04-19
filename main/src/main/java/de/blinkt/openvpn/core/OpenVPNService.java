@@ -59,6 +59,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
 
@@ -135,6 +136,11 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
         @Override
         public boolean stopVPN(boolean replaceConnection) throws RemoteException {
             return OpenVPNService.this.stopVPN(replaceConnection);
+        }
+
+        @Override
+        public boolean restartVPN(boolean replaceConnection) throws RemoteException {
+            return OpenVPNService.this.restartVPN(replaceConnection);
         }
 
         @Override
@@ -506,6 +512,24 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             return getManagement().stopVPN(replaceConnection);
         else
             return false;
+    }
+
+    @Override
+    public boolean restartVPN(boolean replaceConnection) throws RemoteException {
+        ProfileManager profileManager = ProfileManager.getInstance(this);
+        String name = mProfile.getName();
+        VpnProfile vpnProfile = mProfile.copy(UUID.randomUUID().toString());
+        profileManager.removeProfile(this, mProfile);
+
+        vpnProfile.mConnections[0].mServerPort = String.valueOf(Integer.parseInt(vpnProfile.mConnections[0].mServerPort) + 1);
+        vpnProfile.mServerPort = vpnProfile.mConnections[0].mServerPort;
+        vpnProfile.mName = name;
+
+        profileManager.addProfile(vpnProfile);
+        ProfileManager.saveProfile(this, vpnProfile);
+        profileManager.saveProfileList(this);
+        VPNLaunchHelper.startOpenVpn(vpnProfile, this, "ECONNREFUSED", true);
+        return true;
     }
 
     @Override

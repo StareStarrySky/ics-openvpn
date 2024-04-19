@@ -6,6 +6,7 @@
 package de.blinkt.openvpn.core;
 
 import android.annotation.SuppressLint;
+import android.os.RemoteException;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -145,6 +146,23 @@ public class OpenVPNThread implements Runnable {
                 String logline = br.readLine();
                 if (logline == null)
                     return;
+
+                // TODO: 2024/4/19 add a switch to control this
+                if (false ||
+                        // read UDPv4 [ECONNREFUSED]: Connection refused (fd=4,code=111)
+                        logline.contains("ECONNREFUSED") ||
+                        logline.contains("EHOSTUNREACH") ||
+                        // SIGUSR1[soft,tls-error] received, process restarting
+                        // MANAGEMENT: >STATE:1713531658,RECONNECTING,tls-error,,,,,
+                        logline.contains("tls-error")) {
+                    // TODO: 2024/4/19 turn on after complete
+//                    try {
+//                        mService.restartVPN(false);
+//                        return;
+//                    } catch (RemoteException e) {
+//                        VpnStatus.logException(e);
+//                    }
+                }
 
                 if (logline.startsWith(DUMP_PATH_STRING))
                     mDumpPath = logline.substring(DUMP_PATH_STRING.length());
