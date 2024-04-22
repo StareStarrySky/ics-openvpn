@@ -228,6 +228,8 @@
     <string name="reconnection_settings">重新连接设置</string>
     <string name="connectretrymessage">连接尝试间隔 (秒)。</string>
     <string name="connectretrywait">两次连接间隔时间(秒)</string>
+    <string name="connect_retry_get_file">尝试重新获取配置文件</string>
+    <string name="connect_retry_get_file_summary">目前适用于URL来源的配置文件</string>
     <string name="minidump_generated">OpenVPN 意外崩溃。建议您使用主菜单中的发送转储文件功能</string>
     <string name="send_minidump">向开发者发送转储信息</string>
     <string name="send_minidump_summary">向开发人员发送上次崩溃的调试信息</string>

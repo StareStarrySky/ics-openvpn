@@ -149,6 +149,7 @@ public class VpnProfile implements Serializable, Cloneable {
     public String mConnectRetryMax = "-1";
     public String mConnectRetry = "2";
     public String mConnectRetryMaxTime = "300";
+    public boolean mConnectRetryGetFile = false;
     public boolean mUserEditable = true;
     public String mAuth = "";
     public int mX509AuthType = X509_VERIFY_TLSREMOTE_RDN;

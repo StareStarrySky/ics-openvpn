@@ -32,6 +32,7 @@ public class Settings_Obscure extends OpenVpnPreferencesFragment implements Pref
     private ListPreference mConnectRetrymax;
     private EditTextPreference mConnectRetry;
     private EditTextPreference mConnectRetryMaxTime;
+    private CheckBoxPreference mConnectRetryGetFile;
     private EditTextPreference mTunMtu;
 
     public void onCreateBehaviour(Bundle savedInstanceState) {
@@ -40,6 +41,7 @@ public class Settings_Obscure extends OpenVpnPreferencesFragment implements Pref
         mConnectRetrymax = (ListPreference) findPreference("connectretrymax");
         mConnectRetry = (EditTextPreference) findPreference("connectretry");
         mConnectRetryMaxTime = (EditTextPreference) findPreference("connectretrymaxtime");
+        mConnectRetryGetFile = findPreference("connectRetryGetFile");
 
         mPeerInfo = (CheckBoxPreference) findPreference("peerInfo");
 
@@ -66,6 +68,7 @@ public class Settings_Obscure extends OpenVpnPreferencesFragment implements Pref
         mConnectRetryMaxTime.setText(mProfile.mConnectRetryMaxTime);
         onPreferenceChange(mConnectRetryMaxTime, mProfile.mConnectRetryMaxTime);
 
+        mConnectRetryGetFile.setChecked(mProfile.mConnectRetryGetFile);
     }
 
 
@@ -75,6 +78,7 @@ public class Settings_Obscure extends OpenVpnPreferencesFragment implements Pref
         mProfile.mConnectRetry = mConnectRetry.getText();
         mProfile.mPushPeerInfo = mPeerInfo.isChecked();
         mProfile.mConnectRetryMaxTime = mConnectRetryMaxTime.getText();
+        mProfile.mConnectRetryGetFile = mConnectRetryGetFile.isChecked();
     }
 
 

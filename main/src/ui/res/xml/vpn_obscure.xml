@@ -79,6 +79,11 @@
             android:key="connectretrymaxtime"
             android:persistent="false"
             android:title="@string/connectretrymaxtitle" />
+        <CheckBoxPreference
+                android:key="connectRetryGetFile"
+                android:persistent="false"
+                android:summary="@string/connect_retry_get_file_summary"
+                android:title="@string/connect_retry_get_file" />
     </PreferenceCategory>
 
 </PreferenceScreen>

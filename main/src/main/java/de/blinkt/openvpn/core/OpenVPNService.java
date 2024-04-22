@@ -516,6 +516,9 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
 
     @Override
     public boolean restartVPN(boolean replaceConnection) throws RemoteException {
+        if (!mProfile.mConnectRetryGetFile) {
+            return false;
+        }
         ProfileManager profileManager = ProfileManager.getInstance(this);
         String name = mProfile.getName();
         VpnProfile vpnProfile = mProfile.copy(UUID.randomUUID().toString());

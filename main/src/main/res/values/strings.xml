@@ -230,6 +230,8 @@
     <string name="reconnection_settings">Reconnection settings</string>
     <string name="connectretrymessage">Number of seconds to wait between connection attempts.</string>
     <string name="connectretrywait">Seconds between connections</string>
+    <string name="connect_retry_get_file">Try to get configuration again</string>
+    <string name="connect_retry_get_file_summary">Applicable configuration files for URL sources Currently</string>
     <string name="minidump_generated">OpenVPN crashed unexpectedly. Please consider using the send Minidump option in the main menu</string>
     <string name="send_minidump">Send Minidump to developer</string>
     <string name="send_minidump_summary">Sends debugging information about last crash to developer</string>
