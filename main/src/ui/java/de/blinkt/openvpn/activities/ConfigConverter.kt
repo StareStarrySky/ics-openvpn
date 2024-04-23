@@ -10,6 +10,7 @@ import android.annotation.TargetApi
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
@@ -44,6 +45,7 @@ import kotlinx.coroutines.withContext
 import java.io.*
 import java.net.URLDecoder
 import java.util.*
+import java.util.function.Consumer
 
 class ConfigConverter : BaseActivity(), FileSelectCallback, View.OnClickListener {
 
@@ -222,6 +224,20 @@ class ConfigConverter : BaseActivity(), FileSelectCallback, View.OnClickListener
         result.putExtra(VpnProfile.EXTRA_PROFILEUUID, mResult!!.uuid.toString())
         setResult(Activity.RESULT_OK, result)
         finish()
+    }
+
+    fun saveProfile(c: Context, consumer: Consumer<VpnProfile>): String {
+        val vpl = ProfileManager.getInstance(c)
+
+        mResult?.let { consumer.accept(it) }
+
+        if (!TextUtils.isEmpty(mEmbeddedPwFile))
+            ConfigParser.useEmbbedUserAuth(mResult, mEmbeddedPwFile)
+
+        vpl.addProfile(mResult)
+        ProfileManager.saveProfile(c, mResult)
+        vpl.saveProfileList(c)
+        return mResult!!.uuid.toString()
     }
 
     fun showCertDialog() {
@@ -778,9 +794,9 @@ class ConfigConverter : BaseActivity(), FileSelectCallback, View.OnClickListener
                     errorCode = -3
                 } else {
                     if (fromRemote != null) {
-                        mResult?.profileSource = ProfileSource(if (fromRemote.isAS) ProfileSource.Type.AS else ProfileSource.Type.URL, fromRemote)
+                        mResult?.mProfileSource = ProfileSource(if (fromRemote.isAS) ProfileSource.Type.AS else ProfileSource.Type.URL, fromRemote)
                     } else if (data.scheme.equals("file") || data.scheme.equals("content")) {
-                        mResult?.profileSource = ProfileSource(ProfileSource.Type.IMPORT, data.toString())
+                        mResult?.mProfileSource = ProfileSource(ProfileSource.Type.IMPORT, data.toString())
                     }
                 }
             } catch (se: IOException) {
@@ -857,7 +873,7 @@ class ConfigConverter : BaseActivity(), FileSelectCallback, View.OnClickListener
         mLogLayout.addView(view, mLogLayout.childCount - 1)
     }
 
-    private fun doImport(inputStream: InputStream) {
+    fun doImport(inputStream: InputStream) {
         val cp = ConfigParser()
         try {
             val isr = InputStreamReader(inputStream)

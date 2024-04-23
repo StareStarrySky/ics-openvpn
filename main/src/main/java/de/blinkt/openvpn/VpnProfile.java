@@ -15,6 +15,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.security.KeyChain;
 import android.security.KeyChainException;
@@ -25,11 +27,16 @@ import androidx.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Base64;
 
+import de.blinkt.openvpn.activities.ConfigConverter;
 import de.blinkt.openvpn.core.*;
+import de.blinkt.openvpn.fragments.ImportRemoteConfig;
+import okhttp3.HttpUrl;
+import okhttp3.Response;
 
 import org.spongycastle.util.io.pem.PemObject;
 import org.spongycastle.util.io.pem.PemWriter;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -38,6 +45,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -50,6 +58,8 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.Vector;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -106,7 +116,7 @@ public class VpnProfile implements Serializable, Cloneable {
     /**
      * the profile come from
      */
-    public ProfileSource profileSource;
+    public ProfileSource mProfileSource;
 
     public int mAuthenticationType = TYPE_KEYSTORE;
     public String mName;
@@ -866,6 +876,43 @@ public class VpnProfile implements Serializable, Cloneable {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public String getProfileFromSource(Context context) {
+        String uuid = null;
+        FutureTask<String> task = null;
+        if (mProfileSource.getType() == ProfileSource.Type.URL) {
+            ProfileFromRemote remote = (ProfileFromRemote) mProfileSource.getValue();
+            ImportRemoteConfig importRemoteConfig = ImportRemoteConfig.newInstance(remote.getUrl());
+            try {
+                Response response = importRemoteConfig.fetchProfile(context, HttpUrl.parse(remote.getUrl()), remote.getUsername(), remote.getPassword());
+                if (response != null && response.isSuccessful() && response.body() != null) {
+                    String profile = response.body().string();
+
+                    Handler handler = new Handler(Looper.getMainLooper());
+                    task = new FutureTask<>(() -> {
+                        ConfigConverter cc = new ConfigConverter();
+                        cc.doImport(new ByteArrayInputStream(profile.getBytes(StandardCharsets.UTF_8)));
+                        return cc.saveProfile(context, vpnProfile -> {
+                            vpnProfile.mName = mName;
+                            vpnProfile.mProfileSource = mProfileSource;
+                            vpnProfile.mConnectRetryGetFile = mConnectRetryGetFile;
+                        });
+                    });
+                    handler.post(task);
+                }
+            } catch (Exception e) {
+                VpnStatus.logError(e.getLocalizedMessage());
+            }
+        }
+        if (task != null) {
+            try {
+                uuid = task.get();
+            } catch (ExecutionException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return uuid;
     }
 
     public void pwDidFail(Context c) {

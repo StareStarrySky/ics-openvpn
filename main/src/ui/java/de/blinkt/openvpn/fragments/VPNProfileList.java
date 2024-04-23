@@ -478,7 +478,7 @@ public class VPNProfileList extends ListFragment implements OnClickListener, Vpn
                                 profile.mUserEditable = true;
                             } else {
                                 profile = new VpnProfile(name);
-                                profile.profileSource = new ProfileSource<Void>(ProfileSource.Type.CREATE, null);
+                                profile.mProfileSource = new ProfileSource<Void>(ProfileSource.Type.CREATE, null);
                             }
 
                             addProfile(profile);

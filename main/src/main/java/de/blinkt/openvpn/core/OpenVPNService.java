@@ -520,18 +520,17 @@ public class OpenVPNService extends VpnService implements StateListener, Callbac
             return false;
         }
         ProfileManager profileManager = ProfileManager.getInstance(this);
-        String name = mProfile.getName();
-        VpnProfile vpnProfile = mProfile.copy(UUID.randomUUID().toString());
+        String vpnProfileUUID = mProfile.getProfileFromSource(this);
+        if (vpnProfileUUID == null) {
+            return false;
+        }
+        VpnProfile vpnProfile = ProfileManager.get(this, vpnProfileUUID);
         profileManager.removeProfile(this, mProfile);
-
-        vpnProfile.mConnections[0].mServerPort = String.valueOf(Integer.parseInt(vpnProfile.mConnections[0].mServerPort) + 1);
-        vpnProfile.mServerPort = vpnProfile.mConnections[0].mServerPort;
-        vpnProfile.mName = name;
 
         profileManager.addProfile(vpnProfile);
         ProfileManager.saveProfile(this, vpnProfile);
         profileManager.saveProfileList(this);
-        VPNLaunchHelper.startOpenVpn(vpnProfile, this, "ECONNREFUSED", true);
+        VPNLaunchHelper.startOpenVpn(vpnProfile, this, "FIREWALL", true);
         return true;
     }
 
